@@ -48,9 +48,9 @@ export interface IndexingProgressUpdate {
 export type PromptTemplate =
   | string
   | ((
-      history: ChatMessage[],
-      otherData: Record<string, string>,
-    ) => string | ChatMessage[]);
+    history: ChatMessage[],
+    otherData: Record<string, string>,
+  ) => string | ChatMessage[]);
 
 export interface ILLM extends LLMOptions {
   get providerName(): ModelProvider;
@@ -563,7 +563,7 @@ type ContextProviderName =
   | "diff"
   | "github"
   | "terminal"
-  | "locals"
+  | "debugger"
   | "open"
   | "google"
   | "search"
@@ -612,6 +612,7 @@ type ModelProvider =
   | "openai"
   | "free-trial"
   | "anthropic"
+  | "anthropic-vertexai"
   | "cohere"
   | "together"
   | "ollama"
@@ -624,7 +625,9 @@ type ModelProvider =
   | "lmstudio"
   | "llamafile"
   | "gemini"
+  | "gemini-vertexai"
   | "mistral"
+  | "mistral-vertexai"
   | "bedrock"
   | "bedrockimport"
   | "sagemaker"
@@ -645,6 +648,7 @@ type ModelProvider =
   | "nvidia"
   | "vllm"
   | "mock"
+  | "notdiamond"
   | "cerebras";
 
 
@@ -819,7 +823,8 @@ export type EmbeddingsProviderName =
   | "deepinfra"
   | "nvidia"
   | "voyage"
-  | "mistral";
+  | "mistral"
+  | "vertex";
 
 export interface EmbedOptions {
   apiBase?: string;
@@ -836,6 +841,9 @@ export interface EmbedOptions {
 
   // AWS and GCP Options
   region?: string;
+
+  // GCP Options
+  projectId?: string;
 }
 
 export interface EmbeddingsProviderDescription extends EmbedOptions {
@@ -1038,9 +1046,9 @@ export interface Config {
   embeddingsProvider?: EmbeddingsProviderDescription | EmbeddingsProvider;
   /** The model that Continue will use for tab autocompletions. */
   tabAutocompleteModel?:
-    | CustomLLM
-    | ModelDescription
-    | (CustomLLM | ModelDescription)[];
+  | CustomLLM
+  | ModelDescription
+  | (CustomLLM | ModelDescription)[];
   /** Options for tab autocomplete */
   tabAutocompleteOptions?: Partial<TabAutocompleteOptions>;
   /** UI styles customization */

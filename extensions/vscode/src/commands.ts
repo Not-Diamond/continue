@@ -4,6 +4,7 @@ import { CompletionProvider } from "core/autocomplete/completionProvider";
 import { ConfigHandler } from "core/config/ConfigHandler";
 import { getModelByRole } from "core/config/util";
 import { ContinueServerClient } from "core/continueServer/stubs/client";
+import { EXTENSION_NAME } from "core/control-plane/env";
 import { Core } from "core/core";
 import { walkDirAsync } from "core/indexing/walkDir";
 import { GlobalContext } from "core/util/GlobalContext";
@@ -28,7 +29,6 @@ import { DiffManager } from "./diff/horizontal";
 import { VerticalDiffManager } from "./diff/vertical/manager";
 import { QuickEdit, QuickEditShowParams } from "./quickEdit/QuickEditQuickPick";
 import { Battery } from "./util/battery";
-import { EXTENSION_NAME } from "./util/constants";
 import { getFullyQualifiedPath } from "./util/util";
 import { uriFromFilePath } from "./util/vscode";
 import type { VsCodeWebviewProtocol } from "./webviewProtocol";
@@ -483,20 +483,11 @@ const commandsMap: (
     "continue.applyCodeFromChat": () => {
       sidebar.webviewProtocol.request("applyCodeFromChat", undefined);
     },
-    "continue.toggleFullScreen": ({
-      newWindow,
-    }: { newWindow?: boolean } = {}) => {
+    "continue.toggleFullScreen": () => {
       focusGUI();
 
       // Check if full screen is already open by checking open tabs
       const fullScreenTab = getFullScreenTab();
-
-      // Check if the active editor is the Continue GUI View
-      if (fullScreenTab && fullScreenTab.isActive) {
-        //Full screen open and focused - close it
-        vscode.commands.executeCommand("workbench.action.closeActiveEditor"); //this will trigger the onDidDispose listener below
-        return;
-      }
 
       if (fullScreenTab && fullScreenPanel) {
         //Full screen open, but not focused - focus it
@@ -537,17 +528,7 @@ const commandsMap: (
         extensionContext.subscriptions,
       );
 
-      if (newWindow) {
-        vscode.commands.executeCommand(
-          "workbench.action.copyEditorToNewWindow",
-        );
-      }
-    },
-    "continue.toggleNewWindow": () => {
-      focusGUI();
-      vscode.commands.executeCommand("continue.toggleFullScreen", {
-        newWindow: true,
-      });
+      vscode.commands.executeCommand("workbench.action.copyEditorToNewWindow");
     },
     "continue.openConfigJson": () => {
       ide.openFile(getConfigJsonPath());
@@ -651,8 +632,8 @@ const commandsMap: (
           currentStatus === StatusBarStatus.Paused
             ? StatusBarStatus.Enabled
             : currentStatus === StatusBarStatus.Disabled
-            ? StatusBarStatus.Paused
-            : StatusBarStatus.Disabled;
+              ? StatusBarStatus.Paused
+              : StatusBarStatus.Disabled;
       } else {
         // Toggle between Disabled and Enabled
         targetStatus =
@@ -669,9 +650,6 @@ const commandsMap: (
         },
         {
           label: "$(screen-full) Open full screen chat (Cmd+K Cmd+M)",
-        },
-        {
-          label: "$(link-external) Open chat in a new window",
         },
         {
           label: quickPickStatusText(targetStatus),
@@ -724,10 +702,6 @@ const commandsMap: (
           "$(screen-full) Open full screen chat (Cmd+K Cmd+M)"
         ) {
           vscode.commands.executeCommand("continue.toggleFullScreen");
-        } else if (
-          selectedOption === "$(link-external) Open chat in a new window"
-        ) {
-          vscode.commands.executeCommand("continue.toggleNewWindow");
         } else if (selectedOption === "$(question) Open help center") {
           focusGUI();
           vscode.commands.executeCommand("continue.navigateTo", "/more");
